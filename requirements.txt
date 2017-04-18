@@ -1,0 +1,7 @@
+theano>=0.9.0rc1
+numpy
+matplotlib
+scikit-image
+Cython
+nose
+mako
