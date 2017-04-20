@@ -818,7 +818,8 @@ class GenerativeAdversarialNetwork(BaseModel):
         """ Returns default hyperparameters"""
         return {
             'adam_b1':              0.5,
-            'batch_size':           128,
+            #'batch_size':           128,
+            'batch_size':           4,
             'disc_filters':         128,
             'emb_adam_b1':          0.5,
             'emb_cnn_dim':          512,
@@ -848,7 +849,8 @@ class GenerativeAdversarialNetwork(BaseModel):
             'mask_max_perc':        0.85,
             'mb_kernel_dim':        5,
             'mb_nb_kernels':        100,
-            'nb_batch_store_gpu':   100,
+            #'nb_batch_store_gpu':   100,
+            'nb_batch_store_gpu':   1,
             'nb_epochs':            500,
             'patience':             5,
             'patience_increase':    2.,

@@ -1,3 +1,4 @@
+
 """
 Copyright (c) 2017 - Philip Paquette
 
@@ -200,13 +201,6 @@ class Loader(object):
         """Loads a COCO dataset (captions)
         Returns the loaded training and validation COCO object
         """
-		
-        #captions_path = os.path.join(os.path.join(DATA_DIR, 'annotations'), 'dict_key_imgID_value_caps_train_and_valid.pkl')
-        #with open(captions_path, 'rb') as f:
-        #    captions = cPickle.load(f)
-        #train_coco = captions['train']
-        #valid_coco = captions['valid']
-		
         print('..... Initializing COCO')
         with open(os.devnull, 'w') as f:
             old_stdout, sys.stdout = sys.stdout, f

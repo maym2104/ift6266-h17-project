@@ -55,18 +55,18 @@ class BaseModel(object):
         internal_dict['tparams'] = { k: self.tparams[k].get_value() for k in self.tparams.keys() }
         with open(file_name, 'wb') as f:
             cPickle.dump(internal_dict, f, 2)
-        if len(desc) > 0:
-            file_name = os.path.join(SAVED_DIR, self.experiment_name, 'model-%s-%s.pkl' % (desc, current_date))
-        else:
-            file_name = os.path.join(SAVED_DIR, self.experiment_name, 'model-%s.pkl' % (current_date))
-        with open(file_name, 'wb') as f:
-            cPickle.dump(internal_dict, f, 2)
+        #if len(desc) > 0:
+        #    file_name = os.path.join(SAVED_DIR, self.experiment_name, 'model-%s-%s.pkl' % (desc, current_date))
+        #else:
+        #    file_name = os.path.join(SAVED_DIR, self.experiment_name, 'model-%s.pkl' % (current_date))
+        #with open(file_name, 'wb') as f:
+        #    cPickle.dump(internal_dict, f, 2)
         file_name = os.path.join(SAVED_DIR, self.experiment_name, 'hparams.txt')
-        git_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('utf-8')[0:-1]
+        #git_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('utf-8')[0:-1]
         model_name = self.__class__.__name__
         with open(file_name, 'w') as f:
-            f.write("%s:\t\t\t%s\n" % ('GIT Commit:', git_commit))
-            f.write("%s:\t\t\t%s\n" % ('Model name:', model_name))
+        #    f.write("%s:\t\t\t%s\n" % ('GIT Commit:', git_commit))
+        #    f.write("%s:\t\t\t%s\n" % ('Model name:', model_name))
             for hparam in sorted(self.hparams.keys()):
                 f.write("%s:\t\t\t%s\n" % (hparam, self.hparams[hparam]))
             for s in sorted(dir(settings)):
@@ -84,7 +84,7 @@ class BaseModel(object):
         if not os.path.exists(model_path):
             warnings.warn('Unable to find model file %s' % (model_path))
         with open(model_path, 'rb') as f:
-            loaded_model = cPickle.load(f, encoding='latin1')
+            loaded_model = cPickle.load(f)
         self.hparams.update(loaded_model['hparams'])
         if build_model:
             self.build()
