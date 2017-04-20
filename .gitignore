@@ -1,0 +1,6 @@
+.env*
+coco
+saved
+*.pyc
+.idea
+*.swp
