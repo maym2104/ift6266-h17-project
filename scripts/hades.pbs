@@ -1,0 +1,17 @@
+#!/bin/bash
+# PBS -l nodes=1:ppn=2 -l mem=6gb
+# PBS -l walltime=168:00:00
+# PBS -N ppaquette-ift6266
+# PBS -o /home2/ift6ed48/results/log.out
+# PBS -j oe
+# PBS -q soumet
+# PBS -m bae
+# PBS -M philip.paquette@umontreal.ca
+# PBS -r n
+# PBS -V
+# --------------------------------------------------------------
+module add python/3.5.1
+module add CUDA/7.5
+cd /home2/ift6ed48/workspace/w01/
+source /home2/ift6ed48/.env3.5/bin/activate
+python run_model.py
