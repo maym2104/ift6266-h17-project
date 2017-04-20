@@ -1,3 +1,25 @@
+"""
+Copyright (c) 2017 - Philip Paquette
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
+
 # -*- coding: utf-8 -*-
 # Modified from https://github.com/Newmu/dcgan_code/blob/master/lib/ops.py
 # MIT License
@@ -122,12 +144,21 @@ def concat(tensor_list, axis=0):
 
 def pool(X, ws, ignore_border=None, stride=None, pad=(0,0), mode='max'):
     """ Generic pooling layer
+<<<<<<< HEAD
+    X - input (N-D theano tensor of input images) - Input images. Max pooling will be done over the 2 last dimensions.
+    ws (tuple of length 2) - Factor by which to downscale (vertical ws, horizontal ws). (2,2) will halve the image in each dimension.
+    ignore_border (bool (default None, will print a warning and set to False)) - When True, (5,5) input with ws=(2,2) will generate a (2,2) output. (3,3) otherwise.
+    stride (tuple of two ints) - Stride size, which is the number of shifts over rows/cols to get the next pool region. If stride is None, it is considered equal to ws (no overlap on pooling regions).
+    pad (tuple of two ints) - (pad_h, pad_w), pad zeros to extend beyond four borders of the images, pad_h is the size of the top and bottom margins, and pad_w is the size of the left and right margins.
+    mode ({'max', 'sum', 'average_inc_pad', 'average_exc_pad'}) - Operation executed on each window. max and sum always exclude the padding in the computation. average gives you the choice to include or exclude it.
+=======
     X - input (N-D theano tensor of input images) – Input images. Max pooling will be done over the 2 last dimensions.
     ws (tuple of length 2) – Factor by which to downscale (vertical ws, horizontal ws). (2,2) will halve the image in each dimension.
     ignore_border (bool (default None, will print a warning and set to False)) – When True, (5,5) input with ws=(2,2) will generate a (2,2) output. (3,3) otherwise.
     stride (tuple of two ints) – Stride size, which is the number of shifts over rows/cols to get the next pool region. If stride is None, it is considered equal to ws (no overlap on pooling regions).
     pad (tuple of two ints) – (pad_h, pad_w), pad zeros to extend beyond four borders of the images, pad_h is the size of the top and bottom margins, and pad_w is the size of the left and right margins.
     mode ({'max', 'sum', 'average_inc_pad', 'average_exc_pad'}) – Operation executed on each window. max and sum always exclude the padding in the computation. average gives you the choice to include or exclude it.
+>>>>>>> 28281d9b5f6c9bf2ddfffd79fbfcfc33c3fb8f41
     """
     if X.ndim >= 2 and len(ws) == 2:
         return T_pool.pool_2d(input=X, ws=ws, ignore_border=ignore_border, stride=stride, pad=pad, mode=mode)
@@ -242,11 +273,19 @@ def conv_1d(X, w, b=None, border_mode='valid', subsample=(1,), filter_flip=True)
 
 def conv(X, w, b=None, border_mode='half', subsample=(1, 1), filter_flip=True):
     """ Generic convolution layer
+<<<<<<< HEAD
+    X - input (symbolic 4D tensor) - Mini-batch of feature map stacks, of shape (batch size, input channels, input rows, input columns). See the optional parameter input_shape.
+    w - filters (symbolic 4D tensor) - Set of filters used in CNN layer of shape (output channels, input channels, filter rows, filter columns). See the optional parameter filter_shape.
+    border_mode 'valid', 'full', 'half', int, (int1, int2)
+    subsample (tuple of len 2) - Factor by which to subsample the output. Also called strides elsewhere.
+    filter_flip (bool) - If True, will flip the filter rows and columns before sliding them over the input. This operation is normally referred to as a convolution, and this is the default. If False, the filters are not flipped and the operation is referred to as a cross-correlation
+=======
     X - input (symbolic 4D tensor) – Mini-batch of feature map stacks, of shape (batch size, input channels, input rows, input columns). See the optional parameter input_shape.
     w - filters (symbolic 4D tensor) – Set of filters used in CNN layer of shape (output channels, input channels, filter rows, filter columns). See the optional parameter filter_shape.
     border_mode 'valid', 'full', 'half', int, (int1, int2)
     subsample (tuple of len 2) – Factor by which to subsample the output. Also called strides elsewhere.
     filter_flip (bool) – If True, will flip the filter rows and columns before sliding them over the input. This operation is normally referred to as a convolution, and this is the default. If False, the filters are not flipped and the operation is referred to as a cross-correlation
+>>>>>>> 28281d9b5f6c9bf2ddfffd79fbfcfc33c3fb8f41
     """
     output =\
         T.nnet.conv2d(
@@ -261,11 +300,19 @@ def conv(X, w, b=None, border_mode='half', subsample=(1, 1), filter_flip=True):
 
 def deconv(X, X_shape, w, b=None, border_mode='half', subsample=(1, 1), filter_flip=True, a=None, target_size=None):
     """ Generic convolution layer
+<<<<<<< HEAD
+    X - input (symbolic 4D tensor) - This is the input to the transposed convolution
+    w - filters (symbolic 4D tensor) - Set of filters used in CNN layer of shape (nb of channels of X, nb of channels of output, filter rows, filter columns). The first 2 parameters are inversed compared to a normal convolution. (Usually (output channels, input channels))
+    border_mode 'valid', 'full', 'half', int, (int1, int2)
+    subsample (tuple of len 2) - Factor by which to subsample the output. Also called strides elsewhere.
+    filter_flip (bool) - If True, will flip the filter rows and columns before sliding them over the input. This operation is normally referred to as a convolution, and this is the default. If False, the filters are not flipped and the operation is referred to as a cross-correlation
+=======
     X - input (symbolic 4D tensor) – This is the input to the transposed convolution
     w - filters (symbolic 4D tensor) – Set of filters used in CNN layer of shape (nb of channels of X, nb of channels of output, filter rows, filter columns). The first 2 parameters are inversed compared to a normal convolution. (Usually (output channels, input channels))
     border_mode 'valid', 'full', 'half', int, (int1, int2)
     subsample (tuple of len 2) – Factor by which to subsample the output. Also called strides elsewhere.
     filter_flip (bool) – If True, will flip the filter rows and columns before sliding them over the input. This operation is normally referred to as a convolution, and this is the default. If False, the filters are not flipped and the operation is referred to as a cross-correlation
+>>>>>>> 28281d9b5f6c9bf2ddfffd79fbfcfc33c3fb8f41
     a (tuple of len 2) - Additional padding to add to the transposed convolution to get a specific output size
     input_shape (tuple of len 4) - The size of the variable X
     target_size (tuple of len 2 or 4) - indicates the shape you want to get as a result of the transposed convolution (e.g. (64,64) or (128,3,64,64)).

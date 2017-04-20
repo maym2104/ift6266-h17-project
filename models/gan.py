@@ -1,3 +1,24 @@
+"""
+Copyright (c) 2017 - Philip Paquette
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
 import collections
 import lib
 from lib.inits import constant, he, normal, orthogonal
@@ -798,6 +819,7 @@ class GenerativeAdversarialNetwork(BaseModel):
         return {
             'adam_b1':              0.5,
             'batch_size':           8,
+            #'batch_size':           128,
             'disc_filters':         128,
             'emb_adam_b1':          0.5,
             'emb_cnn_dim':          256,
@@ -827,6 +849,9 @@ class GenerativeAdversarialNetwork(BaseModel):
             'mask_max_perc':        0.85,
             'mb_kernel_dim':        4,
             'mb_nb_kernels':        64,
+            #'mb_kernel_dim':        5,
+            #'mb_nb_kernels':        100,
+            #'nb_batch_store_gpu':   100,
             'nb_batch_store_gpu':   1,
             'nb_epochs':            1,
             'patience':             5,
