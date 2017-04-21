@@ -24,3 +24,4 @@ from .base_model import BaseModel
 from .auto_encoder import AutoEncoder
 from .gan import GenerativeAdversarialNetwork
 from .gan_v2 import GenerativeAdversarialNetworkv2
+from .pixelcnn import PixelCNN

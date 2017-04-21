@@ -90,6 +90,7 @@ class BaseModel(object):
         with open(model_path, 'rb') as f:
             loaded_model = cPickle.load(f)
         self.hparams.update(loaded_model['hparams'])
+        self.cvars.update(loaded_model['cvars'])
         if build_model:
             self.build()
         for k in loaded_model['tparams'].keys():
