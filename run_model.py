@@ -28,7 +28,7 @@ from settings import SAVED_DIR
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('mode', choices=['run', 'evaluate', 'load'], help="Run/Load to use default hparams, Evaluate to use random hparams")
-    parser.add_argument('model', choices=['auto-encoder', 'gan'])
+    parser.add_argument('model', choices=['auto-encoder', 'gan', 'pixelCNN'])
     parser.add_argument('--tries', help='The number of tries for evaluate', default=1)
     parser.add_argument('--filename', help='The filename to load', default='model.pkl')
     args = parser.parse_args()
@@ -38,6 +38,8 @@ if __name__ == "__main__":
         model = models.AutoEncoder
     elif args.model == 'gan':
         model = models.GenerativeAdversarialNetwork
+    elif args.model == 'pixelCNN':
+        model = models.PixelCNN
     else:
         raise NotImplementedError
 

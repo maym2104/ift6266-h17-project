@@ -43,6 +43,7 @@ class BaseModel(object):
         self.experiment_name = datetime.datetime.today().strftime('%Y-%m-%d_')
         self.experiment_name += ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
         self.tparams = {}
+        self.cvars = {}
 
     def save(self, desc=''):
         """ Save model to disk """
@@ -86,6 +87,7 @@ class BaseModel(object):
         with open(model_path, 'rb') as f:
             loaded_model = cPickle.load(f)
         self.hparams.update(loaded_model['hparams'])
+        self.cvars.update(loaded_model['cvars'])
         if build_model:
             self.build()
         for k in loaded_model['tparams'].keys():
