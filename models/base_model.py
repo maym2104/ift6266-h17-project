@@ -33,6 +33,7 @@ import string
 import subprocess
 import theano
 import warnings
+import copy
 from settings import MAX_HEIGHT, MAX_WIDTH, SAVED_DIR, LOAD_DATASET_IN_MEMORY
 
 class BaseModel(object):
@@ -43,6 +44,7 @@ class BaseModel(object):
         self.experiment_name = datetime.datetime.today().strftime('%Y-%m-%d_')
         self.experiment_name += ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
         self.tparams = {}
+        self.cvars = {}
 
     def save(self, desc=''):
         """ Save model to disk """
@@ -53,6 +55,8 @@ class BaseModel(object):
         internal_dict = {}
         internal_dict['hparams'] = self.hparams
         internal_dict['tparams'] = { k: self.tparams[k].get_value() for k in self.tparams.keys() }
+        _ = copy.deepcopy(self.cvars)
+        internal_dict['cvars'] = { k: copy.deepcopy(_[k]) for k in _.keys() }
         with open(file_name, 'wb') as f:
             cPickle.dump(internal_dict, f, 2)
         #if len(desc) > 0:
