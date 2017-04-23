@@ -1,7 +1,12 @@
+"""
+About:  PixelCNN implementation for the IFT6266 project
+Author: Mariane Maynard
+Date:   April 2017
+Other:  Inspired from the tensorflow implementation of Sherjil Ozair: https://github.com/sherjilozair/ift6266/blob/master/pixelcnn.py
+"""
+
 import sys, os
 import numpy as np
-#import tensorflow as tf
-#import tensorflow.contrib.slim as slim
 from lib.layers import lrelu, relu, conv, conv_1d, sigmoid, deconv, tanh, batchnorm, concat, max_pool, max_pool_1d, avg_pool, dropout, BinaryCrossEntropy, MeanSquaredError, MeanAbsoluteError
 from lib.inits import constant, he, normal, orthogonal, uniform, glorot
 from lib.utils import castX, shared0s, sharedX, floatX
@@ -61,13 +66,15 @@ class PixelCNN(BaseModel):
         h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, mask='b', scope='conv_relu_1x1_1')
         h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, mask='b', scope='conv_relu_1x1_2')
         self.logits = nn.conv2d(h2, 3, [1, 1], self.tparams, activation_fn=sigmoid, scope='conv_logits')
-        self.losses = T.nnet.binary_crossentropy(self.logits, input)
-        self.losses = self.losses[:, :, 16:48, 16:48]
+        self.logits = self.logits.dimshuffle(0,2,3,1)
+        self.losses = T.nnet.binary_crossentropy(self.logits, self.image)
+        self.losses = self.losses[:, 16:48, 16:48, :]
         self.loss = self.losses.sum(axis=[1, 2, 3]).mean()
         self.updater = Adam(self.hparams['adam_leanring_rate'])
         self.params = [self.tparams[k] for k in self.tparams.keys()]
         self.updates = self.updater(self.params, self.loss)
         self.train_op = theano.function(inputs=[self.image],outputs=[self.loss],updates=self.updates)
+        self.val_op = theano.function(inputs=[self.image],outputs=[self.loss])
         self.pred_fn = theano.function(inputs=[self.image],outputs=[self.logits])
     
     def init_tparams(self):
@@ -128,12 +135,12 @@ class PixelCNN(BaseModel):
 
             for j in xrange(0, len(vidx)/5, mbsz):
                 image = valid[vidx[i:i+mbsz]]
-                l = self.train_op(image)
+                l = self.val_op(image)
                 validation_losses.append(l)
                 print 'validating...', j, np.mean(validation_losses), '\r',
 
             path = self.save_params("{}/model.pkl".format(name))
-            self.sample('{}/sample_{}.png'.format(name, e), train[tidx[:16]])
+            self.sample('{}\\sample_{}.png'.format(name, e), train[tidx[:16]])
             print "epoch: {}/{}, train loss: {}, validation loss: {}, model saved: {}".format(e,
                     nb_epochs, np.mean(train_losses), np.mean(validation_losses), path)
 
@@ -142,11 +149,14 @@ class PixelCNN(BaseModel):
 
     def sample(self, name, image, n=4):
         image[:, 16:48, 16:48, :] = 0.
-        for i in xrange(16, 48):
-            for j in xrange(16, 48):
-                #pixel, = self.sess.run([self.preds[:, i, j, :]], {self.image: image})
-                pixel = self.pred_fn(image)[:,:,i,j]
-                image[:, i, j, :] = pixel.dimshuffle(0,2,3,1)
+        for i in xrange(16, 24):
+            for j in xrange(16, 24):
+                pixels = self.pred_fn(image)[0]
+                
+                #multi scale sampling (16 pixels at the time, 8 pix apart, since 7x7 conv)
+                for step_i in xrange(0,32,8):
+                    for step_j in xrange(0,32,8):
+                        image[:, i+step_i, j+step_j, :] = pixels[:, i+step_i, j+step_j, :]
                 print 'sampling...', i, j, '\r',
 
         canvas = Image.new('RGB', (72*n, 72*n))
@@ -159,13 +169,13 @@ class PixelCNN(BaseModel):
 
     def run(self):
         expname = self.experiment_name
-        datahome = 'C:\\Users\\maym2104\\Documents\\ift6266-h17-project\\'
+        datahome = 'C:\\Users\\Mariane\\Documents\\ift6266\\ift6266-h17-project\\'
         train = np.load(datahome + 'images.train.npz').items()[0][1] / 255.
         valid = np.load(datahome + 'images.valid.npz').items()[0][1] / 255.
         train = train.astype('float32')
         valid = valid.astype('float32')
 
-        self.train(expname, train, valid)
+        self.train(datahome+"saved\\"+expname, train, valid)
         
     # -----------------------
     # --- Private Methods ---
