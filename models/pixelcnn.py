@@ -53,10 +53,9 @@ class nn:
 
 
 class PixelCNN(BaseModel):
-    def build(self):
+    def compile(self):
         self.image = T.tensor4('src_images', dtype='float32')
         input = self.image.dimshuffle(0,3,1,2)
-        self.init_tparams()
         nb_h = self.hparams['h']
         nb_relu_units = self.hparams['nb_relu_units']
         h = nn.conv2d(input, 2*nb_h, [7, 7], self.tparams, mask='a', scope='conv_7x7')
@@ -66,9 +65,10 @@ class PixelCNN(BaseModel):
         h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, mask='b', scope='conv_relu_1x1_1')
         h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, mask='b', scope='conv_relu_1x1_2')
         self.logits = nn.conv2d(h2, 3, [1, 1], self.tparams, activation_fn=sigmoid, scope='conv_logits')
+        
+        self.losses = T.nnet.binary_crossentropy(self.logits, input)
         self.logits = self.logits.dimshuffle(0,2,3,1)
-        self.losses = T.nnet.binary_crossentropy(self.logits, self.image)
-        self.losses = self.losses[:, 16:48, 16:48, :]
+        self.losses = self.losses[:, :, 16:48, 16:48]
         self.loss = self.losses.sum(axis=[1, 2, 3]).mean()
         self.updater = Adam(self.hparams['adam_leanring_rate'])
         self.params = [self.tparams[k] for k in self.tparams.keys()]
@@ -76,6 +76,9 @@ class PixelCNN(BaseModel):
         self.train_op = theano.function(inputs=[self.image],outputs=[self.loss],updates=self.updates)
         self.val_op = theano.function(inputs=[self.image],outputs=[self.loss])
         self.pred_fn = theano.function(inputs=[self.image],outputs=[self.logits])
+    
+    def build(self):
+        self.init_tparams()
     
     def init_tparams(self):
         batch_size = self.hparams['mini_batch_size']
@@ -175,6 +178,7 @@ class PixelCNN(BaseModel):
         train = train.astype('float32')
         valid = valid.astype('float32')
 
+        self.compile()
         self.train(datahome+"saved\\"+expname, train, valid)
         
     # -----------------------

@@ -78,7 +78,7 @@ class BaseModel(object):
                     f.write("SETTINGS-%s:\t\t\t%s\n" % (s, getattr(settings, s)))
         print('Model saved to %s' % (self.experiment_name))
 
-    def load(self, filename='model.pkl', build_model=False):
+    def load(self, filename='model.pkl', build_model=True):
         """ Load model from disk """
         print('... Loading model from disk')
         if os.path.exists(filename):
