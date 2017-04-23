@@ -46,9 +46,9 @@ class nn:
 
     @staticmethod
     def residual_block(x, name, params, mask=None, h_size=0):
-        h = nn.conv2d(x, h_size, [1, 1], params, mask=mask, scope='conv_1x1_{}_1'.format(name))
+        h = nn.conv2d(x, h_size, [1, 1], params, scope='conv_1x1_{}_1'.format(name))
         h = nn.conv2d(h, h_size, [3, 3], params, mask=mask, scope='conv_3x3_{}'.format(name))
-        h = nn.conv2d(h, 2*h_size, [1, 1], params, mask=mask, scope='conv_1x1_{}_2'.format(name))
+        h = nn.conv2d(h, 2*h_size, [1, 1], params, scope='conv_1x1_{}_2'.format(name))
         return h + x
 
 
@@ -62,8 +62,8 @@ class PixelCNN(BaseModel):
         
         for i in xrange(self.hparams['nb_residual_block']):
             h = nn.residual_block(h, str(i), self.tparams, mask='b', h_size=nb_h)
-        h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, mask='b', scope='conv_relu_1x1_1')
-        h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, mask='b', scope='conv_relu_1x1_2')
+        h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, scope='conv_relu_1x1_1')
+        h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, scope='conv_relu_1x1_2')
         self.logits = nn.conv2d(h2, 3, [1, 1], self.tparams, activation_fn=sigmoid, scope='conv_logits')
         
         self.losses = T.nnet.binary_crossentropy(self.logits, input)
