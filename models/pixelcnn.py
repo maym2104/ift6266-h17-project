@@ -7,7 +7,7 @@ Other:  Inspired from the tensorflow implementation of Sherjil Ozair: https://gi
 
 import sys, os
 import numpy as np
-from lib.layers import lrelu, relu, conv, conv_1d, sigmoid, deconv, tanh, batchnorm, concat, max_pool, max_pool_1d, avg_pool, dropout, BinaryCrossEntropy, MeanSquaredError, MeanAbsoluteError
+from lib.layers import relu, clipped_relu, conv, conv_1d, sigmoid, deconv, tanh, batchnorm, concat, max_pool, max_pool_1d, avg_pool, dropout, BinaryCrossEntropy, MeanSquaredError, MeanAbsoluteError
 from lib.inits import constant, he, normal, orthogonal, uniform, glorot
 from lib.utils import castX, shared0s, sharedX, floatX
 from lib.updates import Adam, Regularizer
@@ -23,7 +23,7 @@ class nn:
     #W : (nb_of_output_features, nb_of_input_features, nb_of_input_color_channels, nb_of_output_color_channels, height, width)
     #b : (nb_of_output_features, nb_of_output_color_channels)
     @staticmethod
-    def conv2d(inputs, num_outputs, kernel_size, params, mask=None, activation_fn=relu, scope=None, input_shape=None):
+    def conv2d(inputs, num_outputs, kernel_size, params, mask=None, activation_fn=clipped_relu, scope=None, input_shape=None):
         input_shape = inputs.shape
         #shape = [num_outputs, input_shape[1]] + [3,3] + kernel_size
         nb_of_color_channels = 3
@@ -83,9 +83,9 @@ class PixelCNN(BaseModel):
             h = nn.residual_block(h, str(i), self.tparams, masks=(self.masks['mask_1x1_1_b'],self.masks['mask_3x3_b'], self.masks['mask_1x1_2_b']), h_size=nb_h)
         h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_1_b'], scope='conv_relu_1x1_1')
         h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_2_b'], scope='conv_relu_1x1_2')
-        self.logits = nn.conv2d(h2, 1, [1, 1], self.tparams, activation_fn=sigmoid, scope='conv_logits')
+        self.logits = nn.conv2d(h2, 1, [1, 1], self.tparams, scope='conv_logits')
         
-        self.losses = T.nnet.binary_crossentropy(self.logits, input)
+        self.losses = T.sqr(self.logits - input)
         self.logits = self.logits[:,0,:,:,:].dimshuffle(0,2,3,1)
         self.losses = self.losses[:, :, :, 16:48, 16:48]
         self.loss = self.losses.sum(axis=[1, 2, 3, 4]).mean()
@@ -217,16 +217,16 @@ class PixelCNN(BaseModel):
         canvas = Image.new('RGB', (72*n, 72*n))
         for i in xrange(n):
             for j in xrange(n):
-                im = Image.fromarray(np.cast[np.uint8](image[i*n+j, :, :, :] * 255))
+                im = Image.fromarray(np.cast[np.uint8](image[i*n+j, :, :, :])) #* 255))
                 canvas.paste(im, (72*i+4, 72*j+4))
         canvas.save(name)
 
 
     def run(self):
         expname = self.experiment_name
-        datahome = 'C:\\Users\\Mariane\\Documents\\ift6266\\ift6266-h17-project\\'
-        train = np.load(datahome + 'images.train.npz').items()[0][1] / 255.
-        valid = np.load(datahome + 'images.valid.npz').items()[0][1] / 255.
+        datahome = 'C:\\Users\\maym2104\\Documents\\ift6266-h17-project\\'
+        train = np.load(datahome + 'images.train.npz').items()[0][1] #/ 255.
+        valid = np.load(datahome + 'images.valid.npz').items()[0][1] #/ 255.
         train = train.astype('float32')
         valid = valid.astype('float32')
 
@@ -241,7 +241,7 @@ class PixelCNN(BaseModel):
         return {
             'adam_leanring_rate':   1e-5,
             'init_conv_kernel_size':[7,7],
-            'h':                    64,
+            'h':                    16,
             'mini_batch_size':      8,
             'nb_epochs':            1,
             'nb_residual_block':    7,

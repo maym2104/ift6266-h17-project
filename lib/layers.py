@@ -39,8 +39,8 @@ def linear(x):
 def relu(x):
     return (x + abs(x)) / 2.
 
-def clipped_relu(x, max=10.):
-    return T.clip((x + abs(x)) / 2., min=0., max=max)
+def clipped_relu(x, max=256.):
+    return T.clip((x + abs(x)) / 2., 0., max)
 
 def leaky_relu(x, alpha=0.2):
     return ((1 + alpha) * x + (1 - alpha) * abs(x)) / 2.
