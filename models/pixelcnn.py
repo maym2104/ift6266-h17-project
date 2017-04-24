@@ -80,7 +80,7 @@ class PixelCNN(BaseModel):
         h = nn.conv2d(input, 2*nb_h, [7, 7], self.tparams, mask=self.masks['mask_7x7_a'], scope='conv_7x7')
         
         for i in xrange(self.hparams['nb_residual_block']):
-            h = nn.residual_block(h, str(i), self.tparams, masks=[self.masks['mask_1x1_1_b'],self.masks['mask_3x3_b'], self.masks['mask_1x1_2_b']], h_size=nb_h)
+            h = nn.residual_block(h, str(i), self.tparams, masks=(self.masks['mask_1x1_1_b'],self.masks['mask_3x3_b'], self.masks['mask_1x1_2_b']), h_size=nb_h)
         h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_1_b'], scope='conv_relu_1x1_1')
         h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_2_b'], scope='conv_relu_1x1_2')
         self.logits = nn.conv2d(h2, 1, [1, 1], self.tparams, activation_fn=sigmoid, scope='conv_logits')
@@ -101,17 +101,20 @@ class PixelCNN(BaseModel):
         self.build_masks()
     
     def build_mask(self, shape, mask_type='b', name=None, target='dev0'):
-        mid_x = shape[3]/2
-        mid_y = shape[4]/2
+        mid_x = shape[4]/2
+        mid_y = shape[5]/2
         nb_of_color_channels = shape[2]
 
         mask_filter = constant(shape=shape, c=1., name=name, target=target)
-        mask_filter = T.set_subtensor(mask_filter[:,:,:,:,mid_x, mid_y+1:], 0.)
-        mask_filter = T.set_subtensor(mask_filter[:,:,:,:,mid_x+1:, :], 0.)
+        if(mid_y != 0):
+            mask_filter = T.set_subtensor(mask_filter[:,:,:,:,mid_x, mid_y+1:], 0.)
+        if(mid_x != 0):
+            mask_filter = T.set_subtensor(mask_filter[:,:,:,:,mid_x+1:, :], 0.)
         
         #for each color
         for i in range(nb_of_color_channels):
-            mask_filter = T.set_subtensor(mask_filter[:,:,i+1:,i,mid_x, mid_y], 0.)
+            if(i < (nb_of_color_channels-1)):
+                mask_filter = T.set_subtensor(mask_filter[:,:,i+1:,i,mid_x, mid_y], 0.)
 
             if mask_type == 'a':
                 mask_filter = T.set_subtensor(mask_filter[:,:,i,i,mid_x, mid_y], 0.)
@@ -239,7 +242,7 @@ class PixelCNN(BaseModel):
             'adam_leanring_rate':   1e-5,
             'init_conv_kernel_size':[7,7],
             'h':                    64,
-            'mini_batch_size':      16,
+            'mini_batch_size':      8,
             'nb_epochs':            1,
             'nb_residual_block':    7,
             'nb_relu_units':        32
