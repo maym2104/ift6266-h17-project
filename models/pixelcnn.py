@@ -48,7 +48,7 @@ class nn:
                 
             W  = W * mask #mask_filter
 
-        border_mode = (kernel_size[0]/2,kernel_size[1]/2)
+        border_mode = (kernel_size[0]//2,kernel_size[1]//2)
         subsample = (1,1)
         
         h = T.zeros(shape=[input_shape[0], num_outputs,3,64,64])
@@ -71,6 +71,12 @@ class nn:
         return h + x
 
 
+#def xrange(start, stop, step):
+#    return range(start, stop, step)
+
+#def xrange(stop):
+#    return range(stop)
+
 class PixelCNN(BaseModel):
     def compile(self):
         self.image = T.tensor4('src_images', dtype='float32')
@@ -79,7 +85,7 @@ class PixelCNN(BaseModel):
         nb_relu_units = self.hparams['nb_relu_units']
         h = nn.conv2d(input, 2*nb_h, [7, 7], self.tparams, mask=self.masks['mask_7x7_a'], scope='conv_7x7')
         
-        for i in xrange(self.hparams['nb_residual_block']):
+        for i in range(self.hparams['nb_residual_block']):
             h = nn.residual_block(h, str(i), self.tparams, masks=(self.masks['mask_1x1_1_b'],self.masks['mask_3x3_b'], self.masks['mask_1x1_2_b']), h_size=nb_h)
         h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_1_b'], scope='conv_relu_1x1_1')
         h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_2_b'], scope='conv_relu_1x1_2')
@@ -101,8 +107,8 @@ class PixelCNN(BaseModel):
         self.build_masks()
     
     def build_mask(self, shape, mask_type='b', name=None, target='dev0'):
-        mid_x = shape[4]/2
-        mid_y = shape[5]/2
+        mid_x = shape[4]//2
+        mid_y = shape[5]//2
         nb_of_color_channels = shape[2]
 
         mask_filter = constant(shape=shape, c=1., name=name, target=target)
@@ -142,7 +148,7 @@ class PixelCNN(BaseModel):
         self.tparams['conv_7x7_b'] = constant(shape=(2*h,3), c=0., name='conv_7x7_b', target='dev0')
         
         #residual block params
-        for i in xrange(self.hparams['nb_residual_block']):
+        for i in range(self.hparams['nb_residual_block']):
             self.tparams['conv_1x1_{}_1_W'.format(str(i))] = glorot(shape=[h,2*h,3,3,1,1], fan_in=(1*1*2*h*3), fan_out=h*3, name='conv_1x1_{}_1_W'.format(str(i)), target='dev0')
             self.tparams['conv_1x1_{}_1_b'.format(str(i))] = constant(shape=(h,3), c=0., name='conv_1x1_{}_1_b'.format(str(i)), target='dev0')
             self.tparams['conv_3x3_{}_W'.format(str(i))] = glorot(shape=[h,h,3,3,3,3], fan_in=(3*3*h*3), fan_out=h*3, name='conv_3x3_{}_W'.format(str(i)), target='dev0')
@@ -163,60 +169,63 @@ class PixelCNN(BaseModel):
 
     def save_params(self, name):
         self.save(name)
+        return name
 
     def load_params(self, path):
         self.load(filename=path)
-        print "params restored from {}".format(path)
+        str = "params restored from {}".format(path)
+        print(str)
 
     def train(self, name, train, valid, mbsz=32, nb_epochs=200):
         tidx = np.arange(len(train))
         vidx = np.arange(len(valid))
         mbsz = self.hparams['mini_batch_size']
         nb_epochs = self.hparams['nb_epochs']
+        training_set_fraction = self.hparams['training_set_fraction']
 
-        for e in xrange(nb_epochs):
+        for e in range(nb_epochs):
             train_losses = []
             validation_losses = []
 
             np.random.shuffle(tidx)
 
-            for i in xrange(0, len(tidx)/5, mbsz):
+            for i in range(0, len(tidx)//training_set_fraction, mbsz):
                 image = train[tidx[i:i+mbsz]]
                 l = self.train_op(image)
                 train_losses.append(l)
-                print 'training...', i, np.mean(train_losses), '\r',
+                print('training...', i, np.mean(train_losses), end='\r')
 
             np.random.shuffle(vidx)
 
-            for j in xrange(0, len(vidx)/5, mbsz):
-                image = valid[vidx[i:i+mbsz]]
+            for j in range(0, len(vidx), mbsz):
+                image = valid[vidx[j:j+mbsz]]
                 l = self.val_op(image)
                 validation_losses.append(l)
-                print 'validating...', j, np.mean(validation_losses), '\r',
+                print('validating...', j, np.mean(validation_losses), end='\r')
 
-            path = self.save_params("{}/model.pkl".format(name))
+            path = self.save_params("{}\\model.pkl".format(name))
             self.sample('{}\\sample_{}.png'.format(name, e), train[tidx[:16]])
-            print "epoch: {}/{}, train loss: {}, validation loss: {}, model saved: {}".format(e,
-                    nb_epochs, np.mean(train_losses), np.mean(validation_losses), path)
+            print("epoch: {}/{}, train loss: {}, validation loss: {}, model saved: {}".format(e,
+                    nb_epochs, np.mean(train_losses), np.mean(validation_losses), path))
 
             del train_losses
             del validation_losses
 
     def sample(self, name, image, n=4):
         image[:, 16:48, 16:48, :] = 0.
-        for i in xrange(16, 24):
-            for j in xrange(16, 24):
+        for i in range(16, 48):
+            for j in range(16, 48):
                 pixels = self.pred_fn(image)
                 image[:, i, j, :] = pixels[:, i, j, :]
                 #multi scale sampling (16 pixels at the time, 8 pix apart, since 7x7 conv)
                 #for step_i in xrange(0,32,8):
                 #    for step_j in xrange(0,32,8):
                 #        image[:, i+step_i, j+step_j, :] = pixels[:, i+step_i, j+step_j, :]
-                print 'sampling...', i, j, '\r',
+                print('sampling...', i, j, end='\r')
 
         canvas = Image.new('RGB', (72*n, 72*n))
-        for i in xrange(n):
-            for j in xrange(n):
+        for i in range(n):
+            for j in range(n):
                 im = Image.fromarray(np.cast[np.uint8](image[i*n+j, :, :, :])) #* 255))
                 canvas.paste(im, (72*i+4, 72*j+4))
         canvas.save(name)
@@ -224,7 +233,7 @@ class PixelCNN(BaseModel):
 
     def run(self):
         expname = self.experiment_name
-        datahome = 'C:\\Users\\maym2104\\Documents\\ift6266-h17-project\\'
+        datahome = 'C:\\Users\\Mariane\\Documents\\ift6266-h17-project\\'
         train = np.load(datahome + 'images.train.npz').items()[0][1] #/ 255.
         valid = np.load(datahome + 'images.valid.npz').items()[0][1] #/ 255.
         train = train.astype('float32')
@@ -239,13 +248,14 @@ class PixelCNN(BaseModel):
     def _get_default_hparams(self):
         """ Returns default hyperparameters"""
         return {
-            'adam_leanring_rate':   1e-5,
+            'adam_leanring_rate':   1e-1,
             'init_conv_kernel_size':[7,7],
-            'h':                    16,
-            'mini_batch_size':      8,
-            'nb_epochs':            1,
-            'nb_residual_block':    7,
-            'nb_relu_units':        32
+            'h':                    32,
+            'mini_batch_size':      16,
+            'nb_epochs':            2,
+            'nb_residual_block':    4,
+            'nb_relu_units':        32,
+			'training_set_fraction':8
         }
 
     def _get_random_hparams(self):

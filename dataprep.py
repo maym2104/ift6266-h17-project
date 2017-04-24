@@ -1,10 +1,12 @@
+#Credit: Sherjil Ozair ()
+
 import imageio
 import glob
 import numpy as np
 from tqdm import tqdm
 
 home = 'C:\\Users\\Mariane\\Documents\\ift6266\\ift6266-h17-project\\'
-path = 'coco\\images\\val2014'
+path = 'coco\\images\\train2014'
 
 images = []
 
@@ -14,4 +16,4 @@ for fname in tqdm(glob.glob('{}\\*.jpg'.format(home+path))):
         images.append(img)
 
 images = np.array(images)
-np.savez_compressed(home+'images.valid.npz', images)
+np.savez_compressed(home+'images.train.npz', images)
