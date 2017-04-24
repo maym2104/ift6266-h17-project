@@ -184,29 +184,33 @@ class PixelCNN(BaseModel):
         training_set_fraction = self.hparams['training_set_fraction']
 
         for e in range(nb_epochs):
-            train_losses = []
-            validation_losses = []
+            train_losses_mean = 0
+            valid_losses_mean = 0
+            train_losses = 0
+            validation_losses = 0
 
             np.random.shuffle(tidx)
 
             for i in range(0, len(tidx)//training_set_fraction, mbsz):
                 image = train[tidx[i:i+mbsz]]
                 l = self.train_op(image)
-                train_losses.append(l)
-                print('training...', i, np.mean(train_losses), end='\r')
+                train_losses += l
+                train_losses_mean = train_losses*mbsz/(i+1)
+                print('training...', i, train_losses_mean, end='\r')#mean
 
             np.random.shuffle(vidx)
 
             for j in range(0, len(vidx), mbsz):
                 image = valid[vidx[j:j+mbsz]]
                 l = self.val_op(image)
-                validation_losses.append(l)
-                print('validating...', j, np.mean(validation_losses), end='\r')
+                validation_losses += l
+                valid_losses_mean = validation_losses*mbsz/(j+1)
+                print('validating...', j, valid_losses_mean, end='\r')
 
             path = self.save_params("{}\\model.pkl".format(name))
             self.sample('{}\\sample_{}.png'.format(name, e), train[tidx[:16]])
-            print("epoch: {}/{}, train loss: {}, validation loss: {}, model saved: {}".format(e,
-                    nb_epochs, np.mean(train_losses), np.mean(validation_losses), path))
+            print("epoch: {}/{}, train loss: {}, validation loss: {}, model saved: {}".format(e+1,
+                    nb_epochs, train_losses_mean, valid_losses_mean, path))
 
             del train_losses
             del validation_losses
