@@ -1,4 +1,4 @@
-#Credit: Sherjil Ozair ()
+#Credit: Sherjil Ozair (https://github.com/sherjilozair/ift6266)
 
 import imageio
 import glob
