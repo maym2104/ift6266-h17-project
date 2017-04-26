@@ -7,10 +7,9 @@ Other:  Inspired from the tensorflow implementation of Sherjil Ozair: https://gi
 
 import sys, os
 import numpy as np
-from lib.layers import relu, clipped_relu, conv, conv_1d, sigmoid, deconv, tanh, batchnorm, concat, max_pool, max_pool_1d, avg_pool, dropout, BinaryCrossEntropy, MeanSquaredError, MeanAbsoluteError
-from lib.inits import constant, he, normal, orthogonal, uniform, glorot
-from lib.utils import castX, shared0s, sharedX, floatX
-from lib.updates import Adam, Regularizer
+from lib.layers import relu, clipped_relu, conv, batchnorm, sigmoid, BinaryCrossEntropy, MeanSquaredError, MeanAbsoluteError
+from lib.inits import constant, glorot
+from lib.updates import Adam
 from PIL import Image
 import theano
 import theano.tensor as T
@@ -93,8 +92,9 @@ class PixelCNN(BaseModel):
         h1 = nn.conv2d(h, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_1_b'], scope='conv_relu_1x1_1')
         h2 = nn.conv2d(h1, nb_relu_units, [1, 1], self.tparams, mask=self.masks['mask_relu_1x1_2_b'], scope='conv_relu_1x1_2')
         self.logits = nn.conv2d(h2, 3, [1, 1], self.tparams, scope='conv_logits')
+        self.logits = sigmoid(self.logits)
         
-        self.losses = T.sqr(self.logits - output)
+        self.losses = T.nnet.binary_crossentropy(self.logits, output) #T.sqr(self.logits - output)
         self.losses = self.losses[:, :, 16:48, 16:48]
         self.loss = self.losses.sum(axis=[1, 2, 3]).mean()
         self.updater = Adam(self.hparams['adam_leanring_rate'])
@@ -234,7 +234,7 @@ class PixelCNN(BaseModel):
         canvas = Image.new('RGB', (72*n, 72*n))
         for i in range(n):
             for j in range(n):
-                im = Image.fromarray(np.cast[np.uint8](image[i*n+j, :, :, :])) #* 255))
+                im = Image.fromarray(np.cast[np.uint8](image[i*n+j, :, :, :]* 255))
                 canvas.paste(im, (72*i+4, 72*j+4))
         canvas.save(name)
 
@@ -242,8 +242,8 @@ class PixelCNN(BaseModel):
     def run(self):
         expname = self.experiment_name
         datahome = 'C:\\Users\\Mariane\\Documents\\ift6266\\ift6266-h17-project\\'
-        train = np.load(datahome + 'images.train.npz').items()[0][1] #/ 255.
-        valid = np.load(datahome + 'images.valid.npz').items()[0][1] #/ 255.
+        train = np.load(datahome + 'images.train.npz').items()[0][1] / 255.
+        valid = np.load(datahome + 'images.valid.npz').items()[0][1] / 255.
         train = train.astype('float32')
         valid = valid.astype('float32')
 
@@ -256,7 +256,7 @@ class PixelCNN(BaseModel):
     def _get_default_hparams(self):
         """ Returns default hyperparameters"""
         return {
-            'adam_leanring_rate':   1e-4,
+            'adam_leanring_rate':   1e-2,
             'init_conv_kernel_size':[7,7],
             'h':                    128,
             'mini_batch_size':      16,
