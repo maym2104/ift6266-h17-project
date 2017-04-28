@@ -1,3 +1,4 @@
+#Modified from https://github.com/ppaquette/ift-6266-project/
 """
 Copyright (c) 2017 - Philip Paquette
 
@@ -89,7 +90,7 @@ class BaseModel(object):
             warnings.warn('Unable to find model file %s' % (model_path))
         with open(model_path, 'rb') as f:
             loaded_model = cPickle.load(f)
-        self.hparams.update(loaded_model['hparams'])
+        #self.hparams.update(loaded_model['hparams'])
         self.cvars.update(loaded_model['cvars'])
         if build_model:
             self.build()
